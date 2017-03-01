@@ -4,33 +4,43 @@ import com.github.dockerjava.api.*;
 import com.github.dockerjava.api.model.*;
 import java.io.*;
 import java.util.*;
+import java.util.logging.LogManager;
+
+import org.apache.commons.logging.impl.Log4JLogger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 /**
-* Hello world!
-*
-*/
+ * Hello world!
+ *
+ */
 public class Client
 {
+	private Helper h;
+	protected Logger logger;
+	
+	/**
+	 * The constructor for the class does the following:
+	 * <ul>
+	 * <li>Configure logger</li>
+	 * <li>Initialize the {@link Helper} class</li>
+	 * </ul>
+	 */
+	public Client() {
+		logger = org.apache.log4j.LogManager.getLogger(this.getClass());
+		Properties log4jprops = new Properties();
+		logger.info("hey");
+		h = new Helper();
+		try {
+			log4jprops.load(this.getClass().getResourceAsStream("/log4j.properties"));
+			PropertyConfigurator.configure(log4jprops);
+			h.createClient();			
+		} catch (Exception e) {
+			logger.error("Error building the Docker client!",e);
+		}
+	}
 
-  private void init() throws IOException {
-    InputStream is = getClass().getClassLoader().getResourceAsStream("docker-java.properties");
-    Properties props = new Properties();
-    props.load(is);
-    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-      .withDockerHost(props.getProperty("DOCKER_HOST"))
-      .withDockerTlsVerify(Boolean.valueOf(props.getProperty("DOCKER_TLS_VERIFY")))
-      .withDockerConfig(props.getProperty("DOCKER_CONFIG"))
-      .withApiVersion(props.getProperty("api.version"))
-      .withRegistryUrl(props.getProperty("registry.url"))
-      .build();
-    DockerClient docker = DockerClientBuilder.getInstance(config).build();
-
-    Info info = docker.infoCmd().exec();
-    System.out.print(info);
-
-  }
-  public static void main( String[] args ) throws IOException {
-    Client dockerClient = new Client();
-    dockerClient.init();
-  }
+	public static void main( String[] args ) {
+		Client dockerClient = new Client();
+	}
 
 }
