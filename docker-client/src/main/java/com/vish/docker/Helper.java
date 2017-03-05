@@ -2,9 +2,14 @@ package com.vish.docker;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
@@ -15,8 +20,9 @@ public class Helper {
 	private static String DOCKER_PROPS_FILE = "docker-java.properties";
 	private DockerClient docker;
 	private DockerClientConfig config;
+	private Logger logger;
 	public Helper() {
-		
+		logger = org.apache.log4j.LogManager.getLogger(this.getClass());	
 	}
 
 	/**
@@ -41,4 +47,27 @@ public class Helper {
 		System.out.print(info);
 
 	}
+	
+	protected boolean isContainerRunning(String ancestorImg) {
+		List<Container> cList = docker.listContainersCmd().exec();
+		for (Container c : cList) {
+			logger.debug("container id: " + c.getId() + ", image: " + c.getImage() + ", status: " + c.getStatus());
+			if (ancestorImg.equalsIgnoreCase(c.getImage())) return true;
+		}
+		return false;
+	}
+	
+	protected void createAndStartContainer(String imageName, String... runCommand) {
+		CreateContainerResponse container = docker.createContainerCmd(imageName)
+				   .withCmd(runCommand)
+				   .exec();
+		docker.startContainerCmd(container.getId()).exec();
+	}
+	
+	protected void stopAndDeleteContainer(CreateContainerResponse container) {
+		
+		docker.stopContainerCmd(container.getId()).exec();
+		docker.waitContainerCmd(container.getId()).exec(null);		
+	}
+	
 }

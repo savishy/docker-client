@@ -1,22 +1,15 @@
 package com.vish.docker;
-import com.github.dockerjava.core.*;
-import com.github.dockerjava.api.*;
-import com.github.dockerjava.api.model.*;
-import java.io.*;
 import java.util.*;
-import java.util.logging.LogManager;
-
-import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 /**
- * Hello world!
+ * Docker Client main class.
  *
  */
 public class Client
 {
 	private Helper h;
-	protected Logger logger;
+	private Logger logger;
 	
 	/**
 	 * The constructor for the class does the following:
@@ -41,6 +34,7 @@ public class Client
 
 	public static void main( String[] args ) {
 		Client dockerClient = new Client();
+	
 	}
 
 }
