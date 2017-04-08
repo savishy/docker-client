@@ -1,5 +1,6 @@
 package com.vish.docker;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -27,19 +28,35 @@ public class Helper {
 
 	/**
 	 * Create a Docker Client using the docker-java.properties file.
+	 * @param useRegistryUrlFromFile set to true if registry URL is to be read from file. If set to false, registry
+	 * url is set to index.docker.io/v1.
 	 * @throws IOException
 	 */
 	
-	protected void createClient() throws IOException {
+	protected void createClient(boolean useRegistryUrlFromFile) throws IOException {
 		InputStream is = getClass().getClassLoader().getResourceAsStream(DOCKER_PROPS_FILE);
 		Properties props = new Properties();
 		props.load(is);
+		
+		String dockerConfigDir = props.getProperty("DOCKER_CONFIG");
+		String dockerHostUrl = props.getProperty("DOCKER_HOST");
+		Boolean tls = Boolean.valueOf(props.getProperty("DOCKER_TLS_VERIFY"));
+		String apiVer = props.getProperty("api.version");
+		
+		String registryUrl = "https://index.docker.io/v1/";
+		if (useRegistryUrlFromFile)
+			registryUrl = props.getProperty("registry.url");
+		
+		logger.info(dockerConfigDir);
+		
+		logger.info("host:" + dockerHostUrl);
+		
 		config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-				.withDockerHost(props.getProperty("docker.host"))
-				.withDockerTlsVerify(Boolean.valueOf(props.getProperty("docker.tls.verify")))
-				.withDockerConfig(props.getProperty("docker.config"))
-				.withApiVersion(props.getProperty("api.version"))
-				.withRegistryUrl(props.getProperty("registry.url"))
+				.withDockerHost(dockerHostUrl)
+				.withDockerTlsVerify(tls)
+				.withDockerConfig(dockerConfigDir)
+				.withApiVersion(apiVer)
+				.withRegistryUrl(registryUrl)
 				.build();
 		docker = DockerClientBuilder.getInstance(config).build();
 
