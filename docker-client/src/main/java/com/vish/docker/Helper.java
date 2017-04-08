@@ -3,6 +3,7 @@ package com.vish.docker;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -10,7 +11,9 @@ import org.apache.log4j.Logger;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
@@ -44,12 +47,15 @@ public class Helper {
 		String apiVer = props.getProperty("api.version");
 		
 		String registryUrl = "https://index.docker.io/v1/";
-		if (useRegistryUrlFromFile)
-			registryUrl = props.getProperty("registry.url");
+		if (useRegistryUrlFromFile) {
+			registryUrl = props.getProperty("registry.url");			
+			logger.info("Using Private Registry: " + registryUrl);
+		} else {
+			logger.info("Using Public Docker Hub: " + registryUrl);
+		}
 		
-		logger.info(dockerConfigDir);
-		
-		logger.info("host:" + dockerHostUrl);
+		logger.debug("config dir: " + dockerConfigDir);
+		logger.debug("docker host: " + dockerHostUrl);
 		
 		config = DefaultDockerClientConfig.createDefaultConfigBuilder()
 				.withDockerHost(dockerHostUrl)
@@ -61,7 +67,7 @@ public class Helper {
 		docker = DockerClientBuilder.getInstance(config).build();
 
 		Info info = docker.infoCmd().exec();
-		System.out.print(info);
+		logger.debug(info);
 
 	}
 	
@@ -87,4 +93,24 @@ public class Helper {
 		docker.waitContainerCmd(container.getId()).exec(null);		
 	}
 	
+	/**
+	 * Check whether image in argument is already present.
+	 * @param imgName
+	 */
+	protected void checkImagePresent(String imgName) {
+		List<Image> images = docker.listImagesCmd().exec();
+		for (Image i : images) {
+			logger.debug(i.getId() + "," + Arrays.toString(i.getRepoTags()));
+		}
+	}
+	
+	/**
+	 * Download a docker image if necessary.
+	 * @param imgName
+	 */
+	protected void pullImage(String imgName) {
+		logger.info("Pulling Image: " + imgName);
+		checkImagePresent(imgName);
+		PullImageCmd c = docker.pullImageCmd(imgName).exec(null);
+	}
 }
