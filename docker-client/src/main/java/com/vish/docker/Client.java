@@ -39,11 +39,14 @@ public class Client
 		
 		Options options = new Options();
 		Option useDockerHub = new Option("d",Constants.INPUTS.dockerhub.toString(),false,
-				"if this flag is set, use docker hub instead of private registry");
+				"If this flag is set, uses docker hub as a source for images.\n" +
+				"By default, a private registry is assumed to be running.");
 		Option pullImage = new Option("p", Constants.INPUTS.pull.toString(), true, 
-				"pull a Docker image only without running a container");
+				"pull (download) a Docker image.\n" + 
+				"Here <arg> is a Docker image in the form 'image:tag'.");
 		Option runContainer = new Option("r", Constants.INPUTS.run.toString(), true, 
-				"run a Docker container [pulls image if needed]");
+				"run a Docker container [also pulls image if needed]\n" + 
+				"Here <arg> is a Docker image in the form 'image:tag'." );
 
 		options.addOption(useDockerHub);
 		options.addOption(pullImage);

@@ -13,11 +13,14 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.command.EventsResultCallback;
+import com.github.dockerjava.core.command.PullImageResultCallback;
 
 public class Helper {
 	
@@ -97,11 +100,15 @@ public class Helper {
 	 * Check whether image in argument is already present.
 	 * @param imgName
 	 */
-	protected void checkImagePresent(String imgName) {
+	protected boolean isImagePresent(String imgName) {
 		List<Image> images = docker.listImagesCmd().exec();
 		for (Image i : images) {
 			logger.debug(i.getId() + "," + Arrays.toString(i.getRepoTags()));
+			if (Arrays.asList(i.getRepoTags()).contains(imgName)) {
+				return true;
+			}
 		}
+		return false;
 	}
 	
 	/**
@@ -109,8 +116,16 @@ public class Helper {
 	 * @param imgName
 	 */
 	protected void pullImage(String imgName) {
-		logger.info("Pulling Image: " + imgName);
-		checkImagePresent(imgName);
-		PullImageCmd c = docker.pullImageCmd(imgName).exec(null);
+		
+		PullImageResultCallback callback = new PullImageResultCallback() {			
+		};
+		
+		if (isImagePresent(imgName)) {
+			logger.info("Image " + imgName + " already present");
+		} else {
+			logger.info("Pulling Image: " + imgName);
+			PullImageCmd c = docker.pullImageCmd(imgName);
+			c.exec(callback).awaitSuccess();
+		}
 	}
 }
