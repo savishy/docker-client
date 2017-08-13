@@ -3,15 +3,11 @@ package com.vish.docker;
 import java.io.IOException;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import static org.junit.Assert.*;
 import com.vish.docker.Constants.INPUTS;
-
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 /**
  * Unit tests for Docker Client.
@@ -52,7 +48,7 @@ public class ParserTest {
      * @throws IOException 
      */
     @Test
-    public void testEmptyArgsReturnsNoOptions() throws IOException {
+    public void emptyArgsReturnNoOptions() throws IOException {
     	String[] args = {};
 		assertNotNull(dockerClient.parseArgs(args));
 		assertEquals(0,dockerClient.parseArgs(args).getOptions().length);
@@ -63,7 +59,7 @@ public class ParserTest {
      * @throws IOException
      */
     @Test
-    public void testArgDReturnsDockerHubObject() throws IOException 
+    public void argDReturnsDockerHubObject() throws IOException 
     {
     	String[] args = {"-d"};
 		assertEquals(1,dockerClient.parseArgs(args).getOptions().length);    	
@@ -77,7 +73,7 @@ public class ParserTest {
      * @throws IOException
      */
     @Test
-    public void testArgPWithoutValueThrowsException() throws IOException {
+    public void argPWithoutValueThrowsException() throws IOException {
 		exception.expect(IOException.class);
     	String[] args = new String[]{"-p"};
     	dockerClient.parseArgs(args);
@@ -89,7 +85,7 @@ public class ParserTest {
      * @throws IOException
      */
     @Test
-    public void testArgPWithValueReturnsPullObject() throws IOException {
+    public void argPWithValueReturnsPullObject() throws IOException {
     	String[] args = new String[]{"-p hello-world:latest"};
 		assertEquals(1,dockerClient.parseArgs(args).getOptions().length);    	
 		assertTrue(dockerClient.parseArgs(args).hasOption(
@@ -102,7 +98,7 @@ public class ParserTest {
      */
 
     @Test
-    public void testArgRWithoutValueThrowsException() throws IOException {
+    public void argRWithoutValueThrowsException() throws IOException {
 		exception.expect(IOException.class);
     	String[] args = new String[]{"-r"};
 		dockerClient.parseArgs(args);
@@ -113,7 +109,7 @@ public class ParserTest {
      * @throws IOException
      */
     @Test
-    public void testArgRWithValueReturnsRunObject() throws IOException {
+    public void argRWithValueReturnsRunObject() throws IOException {
     	String[] args = new String[]{"-r hello-world:latest"};
     	assertTrue(dockerClient.parseArgs(args).hasOption(
     			Constants.INPUTS.run.toString()));
