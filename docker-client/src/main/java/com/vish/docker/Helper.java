@@ -31,12 +31,12 @@ public class Helper {
 
 	/**
 	 * Create a Docker Client using the docker-java.properties file.
-	 * @param useRegistryUrlFromFile set to true if registry URL is to be read from file. If set to false, registry
-	 * url is set to index.docker.io/v1.
+	 * @param useDockerHub set to true if docker hub is to be used; else registry URL is read from file. 
+	 * Docker Hub URL is set to index.docker.io/v1.
 	 * @throws IOException
 	 */
 	
-	protected void createClient(boolean useRegistryUrlFromFile) throws IOException {
+	protected void createClient(boolean useDockerHub) throws IOException {
 		InputStream is = getClass().getClassLoader().getResourceAsStream(DOCKER_PROPS_FILE);
 		Properties props = new Properties();
 		props.load(is);
@@ -47,11 +47,11 @@ public class Helper {
 		String apiVer = props.getProperty("api.version");
 		
 		String registryUrl = "https://index.docker.io/v1/";
-		if (useRegistryUrlFromFile) {
+		if (useDockerHub) {
+			logger.info("Using Public Docker Hub: " + registryUrl);
+		} else {
 			registryUrl = props.getProperty("registry.url");			
 			logger.info("Using Private Registry: " + registryUrl);
-		} else {
-			logger.info("Using Public Docker Hub: " + registryUrl);
 		}
 		
 		logger.debug("config dir: " + dockerConfigDir);

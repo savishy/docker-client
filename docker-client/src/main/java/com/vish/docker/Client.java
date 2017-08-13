@@ -12,13 +12,6 @@ public class Client
 {
 	private Helper h;
 	private Logger logger;
-	/** input param names */
-	private static enum INPUTS {
-		dockerhub,
-		pull,
-		run
-	}
-	
 	/**
 	 * The constructor for the class does the following:
 	 * <ul>
@@ -39,14 +32,18 @@ public class Client
 	}
 	
 	/**
-	 * Parse the commandline arguments, print usage as needed.
+	 * Parse the commandline arguments, print usage as needed, return {@link CommandLine} object.
 	 * @param args
 	 */
-	private void parseArgs(String[] args) throws IOException {
+	protected CommandLine parseArgs(String[] args) throws IOException {
+		
 		Options options = new Options();
-		Option useDockerHub = new Option("d",INPUTS.dockerhub.toString(),false,"use docker hub instead of private registry");
-		Option pullImage = new Option("p", INPUTS.pull.toString(), true, "pull a Docker image without running a container");
-		Option runContainer = new Option("r", INPUTS.run.toString(), true, "run a Docker container [might pull image if needed]");
+		Option useDockerHub = new Option("d",Constants.INPUTS.dockerhub.toString(),false,
+				"if this flag is set, use docker hub instead of private registry");
+		Option pullImage = new Option("p", Constants.INPUTS.pull.toString(), true, 
+				"pull a Docker image only without running a container");
+		Option runContainer = new Option("r", Constants.INPUTS.run.toString(), true, 
+				"run a Docker container [pulls image if needed]");
 
 		options.addOption(useDockerHub);
 		options.addOption(pullImage);
@@ -58,33 +55,29 @@ public class Client
 
         try {
             cmd = parser.parse(options, args);
+            //print help if options are empty
+            if (cmd.getOptions().length == 0) {
+                formatter.printHelp("OPTIONS", options);
+            }            
         } catch (ParseException e) {
-            System.out.println(e.getMessage());
             formatter.printHelp("OPTIONS", options);
-
-            System.exit(1);
-            return;
+            throw new IOException(e.getMessage());
         }
-
-        String outputFilePath = cmd.getOptionValue(INPUTS.run.toString());
-
-        execute(cmd);
-        
-
+        return cmd;
     }
 	
 	/**
 	 * Execute the action appropriate to commandline options
-	 * @param cmd
+	 * @param cmd this is passed in from {@link #parseArgs(String[])}
 	 * @throws IOException
 	 */
-	private void execute(CommandLine cmd) throws IOException {
-        if(cmd.hasOption(INPUTS.dockerhub.toString())) {
-    		h.createClient(false);				
-        } else 		h.createClient(true);				
+	protected void execute(CommandLine cmd) throws IOException {
+
+		//create docker client using appropriate option.
+		h.createClient(cmd.hasOption(Constants.INPUTS.dockerhub.toString()));
 		
-        if(cmd.hasOption(INPUTS.pull.toString())) {
-            String imgName = cmd.getOptionValue(INPUTS.pull.toString());
+        if(cmd.hasOption(Constants.INPUTS.pull.toString())) {
+            String imgName = cmd.getOptionValue(Constants.INPUTS.pull.toString());
             h.pullImage(imgName);
         }
 	}
@@ -92,7 +85,7 @@ public class Client
 	public static void main( String[] args ) {
 		Client dockerClient = new Client();
 		try {
-			dockerClient.parseArgs(args);
+			dockerClient.execute(dockerClient.parseArgs(args));
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
