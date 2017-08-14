@@ -116,15 +116,18 @@ public class Helper {
 	 * @param imgName
 	 */
 	protected void pullImage(String imgName) {
-		
+		String i = imgName.trim();
 		PullImageResultCallback callback = new PullImageResultCallback() {			
 		};
 		
-		if (isImagePresent(imgName)) {
-			logger.info("Image " + imgName + " already present");
+		if (isImagePresent(i)) {
+			logger.info("Image " + i + " already present");
 		} else {
-			logger.info("Pulling Image: " + imgName);
-			PullImageCmd c = docker.pullImageCmd(imgName);
+			PullImageCmd c = docker.pullImageCmd(i);
+			logger.info("Pulling Image: " + i + 
+					", Repository: "+ c.getRepository() +
+					", Registry:" + c.getRegistry() + 
+					", Tag: " + c.getTag());
 			c.exec(callback).awaitSuccess();
 		}
 	}
